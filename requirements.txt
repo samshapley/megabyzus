@@ -1,3 +1,9 @@
 requests
 tabulate
 matplotlib
+pydantic
+pandas
+anthropic
+rich
+pytest
+markdown
