@@ -62,7 +62,7 @@ export default function ChatInput({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={disabled ? 'Agent API is unavailable...' : placeholder}
+          placeholder={disabled ? 'Artifical Intelligencing...' : placeholder}
           rows={1}
           disabled={disabled}
           className={`w-full py-3 px-4 pr-16 bg-secondary-background text-white rounded-3xl resize-none max-h-32 overflow-y-auto border border-transparent 

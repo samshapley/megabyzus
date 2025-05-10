@@ -13,10 +13,17 @@ export default function Home() {
   const [requestSent, setRequestSent] = useState(false);
   // State to store the current user input/request
   const [userRequest, setUserRequest] = useState('');
-  // State to store user messages
-  const [userMessages, setUserMessages] = useState<string[]>([]);
-  // State for AI responses from the agent
-  const [aiResponses, setAiResponses] = useState<string[]>([]);
+
+  // Define a message type for our unified message structure
+  type Message = {
+    id: string;
+    content: string;
+    sender: 'user' | 'agent';
+    timestamp: number;
+  };
+
+  // Unified state for all messages in chronological order
+  const [messages, setMessages] = useState<Message[]>([]);
   // State for display panel content (placeholder for now)
   const [displayItems, setDisplayItems] = useState<any[]>([]);
   // State to track if we're on the client side
@@ -51,8 +58,18 @@ export default function Home() {
   // Handler for when a request is submitted
   const handleRequestSubmit = async (request: string) => {
     setUserRequest(request);
-    // Add the user message to the userMessages array
-    setUserMessages([...userMessages, request]);
+    
+    // Create a new user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      content: request,
+      sender: 'user',
+      timestamp: Date.now()
+    };
+    
+    // Add the user message to the messages array
+    setMessages([...messages, userMessage]);
+    
     setRequestSent(true);
     setIsLoading(true);
     setError(null);
@@ -64,11 +81,16 @@ export default function Home() {
       // Store the session ID for future requests
       setSessionId(response.session_id);
       
-      // Add the response to the list
-      setAiResponses([
-        ...aiResponses,
-        response.response
-      ]);
+      // Create an agent message
+      const agentMessage: Message = {
+        id: `agent-${Date.now()}`,
+        content: response.response,
+        sender: 'agent',
+        timestamp: Date.now()
+      };
+      
+      // Add the agent message to the messages array
+      setMessages(prevMessages => [...prevMessages, agentMessage]);
       
       // For future: parse the response for any displayable items
       // This would be where we'd extract and format tool call results
@@ -94,8 +116,7 @@ export default function Home() {
     // Reset all local state
     setRequestSent(false);
     setUserRequest('');
-    setUserMessages([]);
-    setAiResponses([]);
+    setMessages([]);
     setDisplayItems([]);
     setSessionId(null);
     setError(null);
@@ -144,9 +165,8 @@ export default function Home() {
         <div className="panel-layout">
           {/* Left panel for AI responses */}
           <ResponsePanel 
-            userRequest={userRequest} 
-            userMessages={userMessages}
-            responses={aiResponses} 
+            userRequest={userRequest}
+            messages={messages}
             onNewRequest={handleRequestSubmit} 
             onReset={handleReset} 
             isLoading={isLoading}
@@ -162,3 +182,4 @@ export default function Home() {
     </RootLayout>
   );
 }
+

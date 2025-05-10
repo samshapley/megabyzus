@@ -3,10 +3,17 @@
 import { useRef, useEffect } from 'react';
 import ChatInput from './ChatInput';
 
+// Define the Message type to match the one in page.tsx
+type Message = {
+  id: string;
+  content: string;
+  sender: 'user' | 'agent';
+  timestamp: number;
+};
+
 interface ResponsePanelProps {
   userRequest: string;
-  userMessages: string[];
-  responses: string[];
+  messages: Message[];
   onNewRequest: (request: string) => void;
   onReset: () => void;
   isLoading?: boolean;
@@ -15,8 +22,7 @@ interface ResponsePanelProps {
 
 export default function ResponsePanel({ 
   userRequest, 
-  userMessages,
-  responses, 
+  messages,
   onNewRequest, 
   onReset,
   isLoading = false,
@@ -27,13 +33,14 @@ export default function ResponsePanel({
   // Auto-scroll to bottom when messages are added or loading state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [responses, userMessages, isLoading, error]);
+  }, [messages, isLoading, error]);
 
   return (
-    <div className="flex flex-col h-full border-r border-white/10">
+<div className="flex flex-col h-full border-r border-white/10 max-h-screen">
       {/* Header with Reset button */}
-      <div className="py-3 px-4 border-b border-white/10 flex justify-between items-center">
+<div className="py-3 px-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
         <div className="flex items-center">
+          <h2 className="font-semibold mr-3">Conversation</h2>
           {isLoading && (
             <span className="text-xs px-2 py-1 bg-white/10 rounded-full">
               Processing...
@@ -49,32 +56,26 @@ export default function ResponsePanel({
       </div>
       
       {/* Messages container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* User messages */}
-        {userMessages.length > 0 ? (
-          userMessages.map((message, index) => (
-            <div key={`user-${index}`} className="animate-fade-in">
-              <div className="font-semibold text-sm text-secondary-text mb-1">You</div>
-              <div className="py-3 px-4 bg-secondary-background rounded-lg">
-                {message}
+<div className="flex-1 overflow-y-auto p-4 space-y-6 h-0 min-h-0">
+        {/* Render messages in chronological order */}
+        {messages.map((message) => (
+          <div 
+            key={message.id} 
+            className={`animate-fade-in ${message.sender === 'user' ? 'flex justify-end' : ''}`}
+          >
+            <div className={`max-w-[80%] ${message.sender === 'user' ? 'ml-auto' : ''}`}>
+              <div className={`font-semibold text-sm text-secondary-text mb-1 ${message.sender === 'user' ? 'text-right' : ''}`}>
+                {message.sender === 'user' ? 'You' : 'Megabyzus'}
               </div>
-            </div>
-          ))
-        ) : userRequest ? (
-          <div className="animate-fade-in">
-            <div className="font-semibold text-sm text-secondary-text mb-1">You</div>
-            <div className="py-3 px-4 bg-secondary-background rounded-lg">
-              {userRequest}
-            </div>
-          </div>
-        ) : null}
-        
-        {/* AI responses */}
-        {responses.map((response, index) => (
-          <div key={index} className="animate-fade-in">
-            <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus</div>
-            <div className="py-3 px-4 bg-secondary-background rounded-lg whitespace-pre-wrap">
-              {response}
+              <div 
+                className={`py-3 px-4 rounded-lg ${
+                  message.sender === 'user' 
+                    ? 'bg-primary-background rounded-tr-none' 
+                    : 'bg-secondary-background rounded-tl-none'
+                } ${message.sender === 'agent' ? 'whitespace-pre-wrap' : ''}`}
+              >
+                {message.content}
+              </div>
             </div>
           </div>
         ))}
@@ -101,7 +102,7 @@ export default function ResponsePanel({
         {isLoading && (
           <div className="animate-fade-in">
             <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus</div>
-            <div className="py-3 px-4 bg-secondary-background rounded-lg flex items-center space-x-2">
+            <div className="py-3 px-4 bg-secondary-background rounded-lg flex items-center space-x-2 rounded-tl-none">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               <div className="w-2 h-2 bg-white rounded-full animate-pulse delay-150"></div>
               <div className="w-2 h-2 bg-white rounded-full animate-pulse delay-300"></div>
@@ -114,7 +115,7 @@ export default function ResponsePanel({
       </div>
       
       {/* Input container */}
-      <div className="py-3 px-4 border-t border-white/10">
+<div className="py-3 px-4 border-t border-white/10 flex-shrink-0">
         <ChatInput
           onSubmit={onNewRequest}
           placeholder="Send a message..."

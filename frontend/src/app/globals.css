@@ -56,8 +56,9 @@ body {
   display: grid;
   grid-template-columns: 60% 40%;
   gap: 1rem;
-  height: calc(100vh - 4rem);
+  height: 100vh;
   width: 100%;
+  overflow: hidden; /* Prevent the entire layout from scrolling */
 }
 
 @media (max-width: 768px) {
@@ -66,3 +67,13 @@ body {
     grid-template-rows: 1fr 1fr;
   }
 }
+
+/* Chat Styles */
+.bg-primary-background {
+  background-color: #2D3748; /* Dark blue/gray for user messages */
+}
+
+.bg-secondary-background {
+  background-color: #111111; /* Keeping the existing dark background for agent messages */
+}
+

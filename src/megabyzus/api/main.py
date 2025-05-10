@@ -8,7 +8,7 @@ import logging
 from uuid import uuid4
 import json
 
-from megabyzus.agent.nasa_agent import NASAAgent
+from megabyzus.agent.core_agent import CoreAgent
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +45,7 @@ class MessageResponse(BaseModel):
 class Session(BaseModel):
     session_id: str
     created_at: str
-    agent: Any  # This will hold the NASAAgent instance
+    agent: Any
 
 # Middleware for message interception
 @app.middleware("http")
@@ -109,14 +109,14 @@ def get_or_create_session(session_id: Optional[str] = None) -> Session:
         logger.warning("ANTHROPIC_API_KEY not set, using development mode")
     
     # Create a new agent for this session
-    nasa_agent = NASAAgent(api_key=api_key)
+    core_agent = CoreAgent(api_key=api_key)
     
     # Store the session
     import datetime
     session = Session(
         session_id=new_session_id,
         created_at=datetime.datetime.now().isoformat(),
-        agent=nasa_agent
+        agent=core_agent
     )
     sessions[new_session_id] = session
     

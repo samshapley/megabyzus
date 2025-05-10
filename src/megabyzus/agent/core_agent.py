@@ -6,24 +6,22 @@ from megabyzus.agent.tool_calling_agent import ToolCallingAgent
 # Import NASA tools
 from megabyzus.agent.nasa_tools import nasa_tools, process_tool_call
 
-class NASAAgent:
-    """
-    A NASA Technology Transfer agent that uses Claude to understand questions and interact with NASA APIs.
-    This agent uses the ToolCallingAgent for the core interaction logic and provides
-    NASA-specific tools for searching patents, software, and spinoff technologies.
-    """
+class CoreAgent:
 
     def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-opus-20240229"):
         """
-        Initialize the NASA agent with NASA-specific tools.
-        
         Args:
             api_key: The Anthropic API key. If None, will use the ANTHROPIC_API_KEY environment variable.
             model: The Claude model to use.
         """
-        # Create the base tool-calling agent with NASA tools
+        system = (
+            "You are Megabyzus, named after the ancient Persian general."
+            "Use tools and return helpful information to the user."
+        )
+
         self.agent = ToolCallingAgent(
             tools=nasa_tools,
+            system=system,
             process_tool_call_func=process_tool_call,
             api_key=api_key,
             model=model

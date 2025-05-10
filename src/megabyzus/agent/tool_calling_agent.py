@@ -3,6 +3,7 @@ import re
 from typing import List, Dict, Any, Optional, Callable
 from anthropic import Anthropic
 from pydantic import BaseModel
+import json
 
 # Helper function to convert CamelCase to snake_case
 def camel_to_snake(name):
@@ -51,6 +52,7 @@ class ToolCallingAgent:
         self, 
         tools: List[Dict[str, Any]],
         process_tool_call_func: Callable[[str, Dict[str, Any]], str],
+        system: str = "You are a helpful assistant.",
         api_key: Optional[str] = None, 
         model: str = "claude-3-opus-20240229"
     ):
@@ -73,6 +75,7 @@ class ToolCallingAgent:
         self.model = model
         self.tools = tools
         self.process_tool_call_func = process_tool_call_func
+        self.system = system
         
         # Initialize conversation memory
         self.messages = []
@@ -101,13 +104,18 @@ class ToolCallingAgent:
         
         # Add user message to the conversation memory
         self.messages.append({"role": "user", "content": user_message})
+
+        # save self.messages to a file json
+        with open("conversation_history.json", "w") as f:
+            json.dump(self.messages, f, indent=2)
         
         # Initial message to Claude with the conversation history
         message = self.client.messages.create(
             model=self.model,
-            max_tokens=4096,
+            max_tokens=8000,
             tools=self.tools,
-            messages=self.messages
+            system=self.system,
+            messages=self.messages,
         )
         
         if verbose:

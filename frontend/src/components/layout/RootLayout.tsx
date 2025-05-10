@@ -16,13 +16,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
   
   return (
     <div 
-      className={`min-h-screen flex flex-col ${
+      className={`h-screen flex flex-col overflow-hidden ${
         isLoaded ? 'opacity-100' : 'opacity-0'
       } transition-opacity duration-500`}
     >
       {/* Header removed as requested */}
       
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col overflow-hidden">
         {children}
       </main>
     </div>
