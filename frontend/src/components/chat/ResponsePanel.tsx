@@ -2,14 +2,8 @@
 
 import { useRef, useEffect } from 'react';
 import ChatInput from './ChatInput';
-
-// Define the Message type to match the one in page.tsx
-type Message = {
-  id: string;
-  content: string;
-  sender: 'user' | 'agent';
-  timestamp: number;
-};
+import ToolCallExpansionPanel from '../tool-call/ToolCallExpansionPanel';
+import { Message, ToolCallData } from '@/types';
 
 interface ResponsePanelProps {
   userRequest: string;
@@ -76,6 +70,18 @@ export default function ResponsePanel({
               >
                 {message.content}
               </div>
+              
+              {/* Tool Call Expansion Panels */}
+              {message.sender === 'agent' && message.toolCalls && message.toolCalls.length > 0 && (
+                <div className="mt-1">
+                  {message.toolCalls.map((toolCall) => (
+                    <ToolCallExpansionPanel
+                      key={toolCall.id}
+                      toolCall={toolCall}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}

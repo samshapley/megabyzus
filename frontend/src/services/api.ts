@@ -4,6 +4,8 @@
  * This service handles all communication with the agent API.
  */
 
+import { ToolCallData } from '@/types';
+
 // Types for API requests and responses
 export interface MessageRequest {
   message: string;
@@ -13,6 +15,7 @@ export interface MessageRequest {
 export interface MessageResponse {
   response: string;
   session_id: string;
+  toolCalls?: ToolCallData[]; // Add tool calls to response
 }
 
 export interface ConversationHistory {

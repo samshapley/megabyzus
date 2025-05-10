@@ -7,20 +7,13 @@ import ResponsePanel from '@/components/chat/ResponsePanel';
 import DisplayPanel from '@/components/display/DisplayPanel';
 import RootLayout from '@/components/layout/RootLayout';
 import AgentApi from '@/services/api';
+import { Message, ToolCallData } from '@/types';
 
 export default function Home() {
   // State to track whether a request has been sent
   const [requestSent, setRequestSent] = useState(false);
   // State to store the current user input/request
   const [userRequest, setUserRequest] = useState('');
-
-  // Define a message type for our unified message structure
-  type Message = {
-    id: string;
-    content: string;
-    sender: 'user' | 'agent';
-    timestamp: number;
-  };
 
   // Unified state for all messages in chronological order
   const [messages, setMessages] = useState<Message[]>([]);
@@ -81,19 +74,65 @@ export default function Home() {
       // Store the session ID for future requests
       setSessionId(response.session_id);
       
+      // For demo purposes, generate mock tool call data
+      // In a real implementation, this would come from the backend
+      const mockToolCalls: ToolCallData[] = [
+        {
+          id: `tool-call-${Date.now()}`,
+          toolName: 'SearchPatents',
+          inputs: {
+            query: 'autonomous navigation',
+            center: 'JPL',
+            max_results: 5
+          },
+          output: JSON.stringify({
+            status: 'success',
+            query: 'autonomous navigation',
+            total_found: 42,
+            returning: 5,
+            results: [
+              {
+                id: 'PAT123456',
+                case_number: 'NASA-PAT-001',
+                title: 'Autonomous Navigation System for Space Exploration',
+                description: 'A system for autonomous navigation of spacecraft in deep space exploration missions.',
+                primary_contact: 'John Doe',
+                category: 'Navigation',
+                website: 'https://technology.nasa.gov/patent/PAT123456',
+                status: 'Granted',
+                date: '2023-05-15',
+                center: 'JPL'
+              },
+              {
+                id: 'PAT789012',
+                case_number: 'NASA-PAT-002',
+                title: 'Terrain-based Navigation for Planetary Rovers',
+                description: 'A method for rover navigation using terrain feature recognition and mapping.',
+                primary_contact: 'Jane Smith',
+                category: 'Navigation',
+                website: 'https://technology.nasa.gov/patent/PAT789012',
+                status: 'Granted',
+                date: '2022-11-30',
+                center: 'JPL'
+              }
+            ]
+          }),
+          timestamp: Date.now()
+        }
+      ];
+      
       // Create an agent message
       const agentMessage: Message = {
         id: `agent-${Date.now()}`,
         content: response.response,
         sender: 'agent',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        toolCalls: mockToolCalls // Add the mock tool calls for demonstration
       };
       
       // Add the agent message to the messages array
       setMessages(prevMessages => [...prevMessages, agentMessage]);
       
-      // For future: parse the response for any displayable items
-      // This would be where we'd extract and format tool call results
     } catch (error: any) {
       console.error('Error calling agent API:', error);
       setError(`Error: ${error.message || 'Failed to get response from the agent'}`);
@@ -182,4 +221,3 @@ export default function Home() {
     </RootLayout>
   );
 }
-

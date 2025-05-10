@@ -105,9 +105,9 @@ class ToolCallingAgent:
         # Add user message to the conversation memory
         self.messages.append({"role": "user", "content": user_message})
 
-        # save self.messages to a file json
-        with open("conversation_history.json", "w") as f:
-            json.dump(self.messages, f, indent=2)
+        # # save self.messages to a file json
+        # with open("conversation_history.json", "w") as f:
+        #     json.dump(self.messages, f, indent=2)
         
         # Initial message to Claude with the conversation history
         message = self.client.messages.create(

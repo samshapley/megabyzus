@@ -6,6 +6,7 @@
   --secondary-background: #111111;
   --secondary-text: #DDDDDD;
   --border-color: rgba(255, 255, 255, 0.1);
+  --primary-color: #B08D57;
 }
 
 @theme inline {
@@ -43,12 +44,28 @@ body {
   to   { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes slideDown {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
 
 .animate-slide-up {
   animation: slideUp 0.3s ease-in-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out forwards;
+  overflow: hidden;
 }
 
 /* Split Panel Layout */
@@ -77,3 +94,38 @@ body {
   background-color: #111111; /* Keeping the existing dark background for agent messages */
 }
 
+/* Styling for code blocks */
+pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 8px;
+  overflow-x: auto;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Give some delay to the loading dots */
+.animate-pulse.delay-150 {
+  animation-delay: 150ms;
+}
+
+.animate-pulse.delay-300 {
+  animation-delay: 300ms;
+}
