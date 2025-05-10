@@ -7,13 +7,15 @@ interface ChatInputProps {
   placeholder?: string;
   initialValue?: string;
   autoFocus?: boolean;
+  disabled?: boolean;
 }
 
 export default function ChatInput({ 
   onSubmit, 
   placeholder = 'Type your message...',
   initialValue = '',
-  autoFocus = false
+  autoFocus = false,
+  disabled = false
 }: ChatInputProps) {
   const [inputValue, setInputValue] = useState(initialValue);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -28,22 +30,22 @@ export default function ChatInput({
   
   // Set focus on input if autoFocus is true
   useEffect(() => {
-    if (autoFocus && inputRef.current) {
+    if (autoFocus && inputRef.current && !disabled) {
       inputRef.current.focus();
     }
-  }, [autoFocus]);
+  }, [autoFocus, disabled]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
-    if (inputValue.trim()) {
+    if (inputValue.trim() && !disabled) {
       onSubmit(inputValue.trim());
       setInputValue('');
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !disabled) {
       e.preventDefault();
       handleSubmit();
     }
@@ -60,16 +62,19 @@ export default function ChatInput({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={disabled ? 'NASA Agent API is unavailable...' : placeholder}
           rows={1}
-          className="w-full py-3 px-4 pr-16 bg-secondary-background text-white rounded-3xl resize-none max-h-32 overflow-y-auto border border-transparent focus:outline-none focus:border-[#B08D57] focus:ring-2 focus:ring-[#B08D57]/50 hover:border-[#B08D57]/30 hover:ring-1 hover:ring-[#B08D57]/30 transition-all duration-200"
+          disabled={disabled}
+          className={`w-full py-3 px-4 pr-16 bg-secondary-background text-white rounded-3xl resize-none max-h-32 overflow-y-auto border border-transparent 
+            ${disabled ? 'opacity-50 cursor-not-allowed' : 'focus:outline-none focus:border-[#B08D57] focus:ring-2 focus:ring-[#B08D57]/50 hover:border-[#B08D57]/30 hover:ring-1 hover:ring-[#B08D57]/30'} 
+            transition-all duration-200`}
           style={{ minHeight: '56px' }}
         />
         <button
           type="submit"
-          disabled={!inputValue.trim()}
+          disabled={!inputValue.trim() || disabled}
           className={`absolute right-3 p-2 rounded-md ${
-            inputValue.trim() 
+            inputValue.trim() && !disabled
               ? 'text-white hover:bg-white/10' 
               : 'text-gray-500 cursor-not-allowed'
           } transition-colors`}
@@ -80,7 +85,7 @@ export default function ChatInput({
             width="20" 
             height="20" 
             alt="Send message"
-            className="w-5 h-5"
+            className={`w-5 h-5 ${disabled ? 'opacity-50' : ''}`}
           />
         </button>
       </div>
