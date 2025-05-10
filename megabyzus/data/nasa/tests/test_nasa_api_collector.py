@@ -6,8 +6,8 @@ Unit tests for the NASA API Collector module.
 import unittest
 from unittest import mock
 import time
-from megabyzus.data.nasa import nasa_api_collector as collector
-from megabyzus.data.nasa import nasa_api_utils as utils
+from agent.data.nasa import nasa_api_collector as collector
+from agent.data.nasa import nasa_api_utils as utils
 
 class TestNasaApiCollector(unittest.TestCase):
     """Test cases for NASA API Collector module."""

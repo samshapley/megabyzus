@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional, Callable
 from pydantic import Field
-from .tool_calling_agent import Tool
+from megabyzus.agent.tool_calling_agent import Tool
 
 # Define Pydantic models for our calculator tools
 

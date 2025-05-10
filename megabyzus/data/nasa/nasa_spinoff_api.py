@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-NASA Patent API Module
+NASA Spinoff API Module
 
 This module provides functions for interacting with the NASA Technology Transfer API
-specifically for patents, including both targeted searching and complete data extraction.
+specifically for spinoff technologies, including both targeted searching and complete data extraction.
 """
 
 import time
-from . import nasa_api_utils as utils
+from megabyzus.data.nasa import nasa_api_utils as utils
 
 # Set up logging
-logger = utils.setup_logging("nasa_patent_api.log")
+logger = utils.setup_logging("nasa_spinoff_api.log")
 
-def search_patents(search_term, save_results=True, filename=None):
+def search_spinoffs(search_term, save_results=True, filename=None):
     """
-    Search the NASA Technology Transfer API for patents matching a specific term.
+    Search the NASA Technology Transfer API for spinoffs matching a specific term.
     
     Args:
         search_term (str): Search term to query
@@ -24,27 +24,27 @@ def search_patents(search_term, save_results=True, filename=None):
     Returns:
         dict: Search results data
     """
-    logger.info(f"Searching patents for term: '{search_term}'")
-    return fetch_patent_data(search_term, save_results, filename)
+    logger.info(f"Searching spinoffs for term: '{search_term}'")
+    return fetch_spinoff_data(search_term, save_results, filename)
 
-def extract_all_patents(save_results=True, filename=None):
+def extract_all_spinoffs(save_results=True, filename=None):
     """
-    Extract all patent data from the NASA Technology Transfer API using a generic search.
+    Extract all spinoff data from the NASA Technology Transfer API using a generic search.
     
     Args:
         save_results (bool): Whether to save the results to a file
         filename (str): Optional filename to save results to
         
     Returns:
-        dict: Complete patent data
+        dict: Complete spinoff data
     """
-    logger.info("Extracting all patents from NASA Technology Transfer API")
-    # Using a search term that will return all patents (the empty string or 'a')
-    return fetch_patent_data("a", save_results, filename or "nasa_patents_all.json")
+    logger.info("Extracting all spinoffs from NASA Technology Transfer API")
+    # Using a search term that will return all spinoffs (the empty string or 'a')
+    return fetch_spinoff_data("a", save_results, filename or "nasa_spinoffs_all.json")
 
-def fetch_patent_data(search_term, save_results=True, filename=None):
+def fetch_spinoff_data(search_term, save_results=True, filename=None):
     """
-    Fetch all patent data for a specific search term, handling pagination.
+    Fetch all spinoff data for a specific search term, handling pagination.
     
     Args:
         search_term (str): The search term to query
@@ -54,7 +54,7 @@ def fetch_patent_data(search_term, save_results=True, filename=None):
     Returns:
         dict: Complete results including all pages
     """
-    api_type = "patent"
+    api_type = "spinoff"
     url = f"{utils.API_BASE_URL}/{api_type}/{search_term}"
     complete_results = []
     page = 0
@@ -76,7 +76,7 @@ def fetch_patent_data(search_term, save_results=True, filename=None):
         if total_results is None:
             total_results = data.get("total", 0)
             total_pages = (total_results + data.get("perpage", 10) - 1) // data.get("perpage", 10)
-            logger.info(f"Found {total_results} total patent results across {total_pages} pages")
+            logger.info(f"Found {total_results} total spinoff results across {total_pages} pages")
         
         # Log progress
         logger.info(f"Retrieved page {page+1}/{total_pages} ({len(results)} items)")

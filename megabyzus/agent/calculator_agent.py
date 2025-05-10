@@ -1,7 +1,7 @@
 import os
 from typing import Optional
-from .tool_calling_agent import ToolCallingAgent
-from .calculator_tools import calculator_tools, process_tool_call
+from megabyzus.agent.tool_calling_agent import ToolCallingAgent
+from megabyzus.agent.calculator_tools import calculator_tools, process_tool_call
 
 class CalculatorAgent:
     """
