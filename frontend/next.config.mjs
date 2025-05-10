@@ -24,7 +24,7 @@ const nextConfig = {
 
   // Define runtime environment variables
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   },
 
   // Add rewrites for the API to avoid CORS issues during development
@@ -33,7 +33,7 @@ const nextConfig = {
       {
         source: '/api/:path*',
         // Use localhost directly since we're in the same container
-        destination: 'http://localhost:8000/api/:path*',
+        destination: 'http://localhost:8080/api/:path*',
       },
     ]
   },

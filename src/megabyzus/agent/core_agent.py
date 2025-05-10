@@ -8,7 +8,7 @@ from megabyzus.agent.nasa_tools import nasa_tools, process_tool_call
 
 class CoreAgent:
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-opus-20240229"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-7-sonnet-20250219"):
         """
         Args:
             api_key: The Anthropic API key. If None, will use the ANTHROPIC_API_KEY environment variable.

@@ -54,7 +54,7 @@ class ToolCallingAgent:
         process_tool_call_func: Callable[[str, Dict[str, Any]], str],
         system: str = "You are a helpful assistant.",
         api_key: Optional[str] = None, 
-        model: str = "claude-3-opus-20240229"
+        model: str = "claude-3-7-sonnet-20250219"
     ):
         """
         Initialize the tool-calling agent.
