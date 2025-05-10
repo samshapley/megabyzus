@@ -6,7 +6,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import ResponsePanel from '@/components/chat/ResponsePanel';
 import DisplayPanel from '@/components/display/DisplayPanel';
 import RootLayout from '@/components/layout/RootLayout';
-import nasaAgentApi from '@/services/api';
+import AgentApi from '@/services/api';
 
 export default function Home() {
   // State to track whether a request has been sent
@@ -15,7 +15,7 @@ export default function Home() {
   const [userRequest, setUserRequest] = useState('');
   // State to store user messages
   const [userMessages, setUserMessages] = useState<string[]>([]);
-  // State for AI responses from the NASA agent
+  // State for AI responses from the agent
   const [aiResponses, setAiResponses] = useState<string[]>([]);
   // State for display panel content (placeholder for now)
   const [displayItems, setDisplayItems] = useState<any[]>([]);
@@ -37,7 +37,7 @@ export default function Home() {
     // Check API health when the component mounts
     const checkApiHealth = async () => {
       try {
-        const isHealthy = await nasaAgentApi.checkHealth();
+        const isHealthy = await AgentApi.checkHealth();
         setApiHealthy(isHealthy);
       } catch (error) {
         console.error('API health check failed:', error);
@@ -58,8 +58,8 @@ export default function Home() {
     setError(null);
     
     try {
-      // Call the NASA agent API
-      const response = await nasaAgentApi.sendMessage(request, sessionId);
+      // Call the agent API
+      const response = await AgentApi.sendMessage(request, sessionId);
       
       // Store the session ID for future requests
       setSessionId(response.session_id);
@@ -73,7 +73,7 @@ export default function Home() {
       // For future: parse the response for any displayable items
       // This would be where we'd extract and format tool call results
     } catch (error: any) {
-      console.error('Error calling NASA agent API:', error);
+      console.error('Error calling agent API:', error);
       setError(`Error: ${error.message || 'Failed to get response from the agent'}`);
     } finally {
       setIsLoading(false);
@@ -85,7 +85,7 @@ export default function Home() {
     // If we have a session ID, delete it from the server
     if (sessionId) {
       try {
-        await nasaAgentApi.deleteSession(sessionId);
+        await AgentApi.deleteSession(sessionId);
       } catch (error) {
         console.error('Error deleting session:', error);
       }
@@ -125,7 +125,7 @@ export default function Home() {
             {/* API Health Status */}
             {apiHealthy === false && (
               <div className="mb-4 p-3 bg-red-900/50 text-white rounded-md">
-                Warning: NASA Agent API is not available. Responses will not work.
+                Warning: Agent API is not available. Responses will not work.
               </div>
             )}
             

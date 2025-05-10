@@ -8,7 +8,6 @@ import logging
 from uuid import uuid4
 import json
 
-# Import the NASA agent
 from megabyzus.agent.nasa_agent import NASAAgent
 
 # Set up logging
@@ -17,8 +16,8 @@ logger = logging.getLogger("nasa-api")
 
 # Initialize the FastAPI app
 app = FastAPI(
-    title="Megabyzus NASA Agent API",
-    description="API for interacting with the NASA Technology Transfer Agent",
+    title="Megabyzus Agent API",
+    description="API for interacting with the Megabyzus agent.",
     version="0.1.0"
 )
 
@@ -96,12 +95,12 @@ async def intercept_messages(request: Request, call_next):
         media_type=response.media_type
     )
 
-# Helper function to get or create a NASA agent session
+# Helper function to get or create an agent session
 def get_or_create_session(session_id: Optional[str] = None) -> Session:
     if session_id and session_id in sessions:
         return sessions[session_id]
     
-    # Create a new session with a NASA agent
+    # Create a new session with an agent
     new_session_id = session_id or str(uuid4())
     
     # Get API key from environment or use a default for development
@@ -109,7 +108,7 @@ def get_or_create_session(session_id: Optional[str] = None) -> Session:
     if not api_key:
         logger.warning("ANTHROPIC_API_KEY not set, using development mode")
     
-    # Create a new NASA agent for this session
+    # Create a new agent for this session
     nasa_agent = NASAAgent(api_key=api_key)
     
     # Store the session
@@ -130,7 +129,7 @@ async def process_message(request: MessageRequest):
         # Get or create a session
         session = get_or_create_session(request.session_id)
         
-        # Process the message with the NASA agent
+        # Process the message with the agent
         response = session.agent.process_message(request.message)
         
         return MessageResponse(

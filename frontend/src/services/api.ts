@@ -1,7 +1,7 @@
 /**
- * NASA Agent API Service
+ * Agent API Service
  * 
- * This service handles all communication with the NASA agent API.
+ * This service handles all communication with the agent API.
  */
 
 // Types for API requests and responses
@@ -25,11 +25,11 @@ export interface ConversationHistory {
 const API_BASE_URL = '';
 
 /**
- * NASA Agent API client
+ * Agent API client
  */
-export const nasaAgentApi = {
+export const AgentApi = {
   /**
-   * Send a message to the NASA agent
+   * Send a message to the agent API 
    * 
    * @param message The user's message
    * @param sessionId Optional session ID for conversation continuity
@@ -37,7 +37,7 @@ export const nasaAgentApi = {
    */
   async sendMessage(message: string, sessionId?: string): Promise<MessageResponse> {
     try {
-      console.log(`Sending message to NASA agent API: ${message}`);
+      console.log(`Sending message to agent API: ${message}`);
       
       const response = await fetch(`${API_BASE_URL}/api/message`, {
         method: 'POST',
@@ -59,7 +59,7 @@ export const nasaAgentApi = {
       
       return data as MessageResponse;
     } catch (error) {
-      console.error('Error sending message to NASA agent:', error);
+      console.error('Error sending message to agent:', error);
       throw error;
     }
   },
@@ -124,4 +124,4 @@ export const nasaAgentApi = {
   }
 };
 
-export default nasaAgentApi;
+export default AgentApi;

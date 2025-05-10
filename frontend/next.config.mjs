@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Allow cross-origin requests from the preview domain and NASA API service
+  // Allow cross-origin requests from the preview domain and API service
   async headers() {
     return [
       {

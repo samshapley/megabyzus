@@ -53,7 +53,7 @@ This will:
 ## API Endpoints
 
 - `/api/health` - Health check endpoint
-- `/api/message` - Send messages to the NASA agent
+- `/api/message` - Send messages to the agent
 - `/api/sessions/{session_id}/history` - Get conversation history
 - `/api/sessions/{session_id}` - Delete a session
 

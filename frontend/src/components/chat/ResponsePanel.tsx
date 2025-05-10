@@ -73,7 +73,7 @@ export default function ResponsePanel({
         {/* AI responses */}
         {responses.map((response, index) => (
           <div key={index} className="animate-fade-in">
-            <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus NASA Agent</div>
+            <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus</div>
             <div className="py-3 px-4 bg-secondary-background rounded-lg whitespace-pre-wrap">
               {response}
             </div>
@@ -101,7 +101,7 @@ export default function ResponsePanel({
         {/* Loading indicator shown when waiting for a response */}
         {isLoading && (
           <div className="animate-fade-in">
-            <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus NASA Agent</div>
+            <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus</div>
             <div className="py-3 px-4 bg-secondary-background rounded-lg flex items-center space-x-2">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               <div className="w-2 h-2 bg-white rounded-full animate-pulse delay-150"></div>
