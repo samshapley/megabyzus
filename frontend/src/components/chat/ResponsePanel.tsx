@@ -34,7 +34,6 @@ export default function ResponsePanel({
       {/* Header with Reset button */}
       <div className="py-3 px-4 border-b border-white/10 flex justify-between items-center">
         <div className="flex items-center">
-          <h2 className="font-semibold mr-3">Conversation</h2>
           {isLoading && (
             <span className="text-xs px-2 py-1 bg-white/10 rounded-full">
               Processing...
