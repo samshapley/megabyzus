@@ -7,3 +7,5 @@ anthropic
 rich
 pytest
 markdown
+fastapi
+uvicorn
