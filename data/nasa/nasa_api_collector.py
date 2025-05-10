@@ -3,8 +3,8 @@
 NASA Technology Transfer API Data Collector
 
 This script exhaustively collects all data from the NASA Technology Transfer API
-across patents, software, and spinoffs, using pagination to ensure complete data retrieval.
-Results are saved to structured JSON files.
+across patents, software, and spinoffs, using multiple search terms and pagination
+to ensure complete data retrieval. Results are saved to structured JSON files.
 """
 
 import os
@@ -13,29 +13,18 @@ import time
 import argparse
 import logging
 from datetime import datetime
-import requests
+
+# Import modular endpoint scripts
+from . import nasa_api_utils as utils
+from . import nasa_patent_api
+from . import nasa_software_api
+from . import nasa_spinoff_api
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('nasa_api_collector.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+logger = utils.setup_logging("nasa_api_collector.log")
 
 # Constants
-API_BASE_URL = "http://technology.nasa.gov/api/query"
 API_TYPES = ["patent", "software", "spinoff"]
-RESULTS_DIR = "results"
-REQUEST_DELAY = 1.0  # Delay between API requests in seconds
-
-# Ensure results directory exists
-if not os.path.exists(RESULTS_DIR):
-    os.makedirs(RESULTS_DIR)
-    logger.info(f"Created results directory: {RESULTS_DIR}")
 
 def get_search_terms():
     """
@@ -70,128 +59,18 @@ def get_search_terms():
     # Remove duplicates and return
     return list(set(all_terms))
 
-def fetch_api_data(api_type, search_term):
+def collect_all_data(api_types=None, search_terms=None, combine_results=True):
     """
-    Fetch all data for a specific API type and search term, handling pagination.
+    Collect all data from the NASA Technology Transfer API for specified endpoints
+    using multiple search terms to ensure comprehensive data retrieval.
     
     Args:
-        api_type (str): The API type ('patent', 'software', or 'spinoff')
-        search_term (str): The search term to query
-        
-    Returns:
-        dict: Complete results including all pages
-    """
-    logger.info(f"Fetching {api_type} data for search term: '{search_term}'")
-    
-    url = f"{API_BASE_URL}/{api_type}/{search_term}"
-    complete_results = []
-    page = 0
-    total_pages = None
-    total_results = None
-    
-    while True:
-        try:
-            logger.debug(f"Requesting {url} - page {page}")
-            response = requests.get(f"{url}?page={page}")
-            
-            # Check if the request was successful
-            if response.status_code != 200:
-                logger.error(f"Error fetching data: HTTP {response.status_code}")
-                break
-                
-            # Parse the response
-            data = response.json()
-            
-            # Extract results from this page
-            results = data.get("results", [])
-            complete_results.extend(results)
-            
-            # Set total results and pages if not already set
-            if total_results is None:
-                total_results = data.get("total", 0)
-                total_pages = (total_results + data.get("perpage", 10) - 1) // data.get("perpage", 10)
-                logger.info(f"Found {total_results} total results across {total_pages} pages")
-            
-            # Log progress
-            logger.info(f"Retrieved page {page+1}/{total_pages} ({len(results)} items)")
-            
-            # Check if we've retrieved all results
-            if len(complete_results) >= total_results or not results:
-                break
-                
-            # Move to the next page
-            page += 1
-            
-            # Add a delay to avoid overwhelming the API
-            time.sleep(REQUEST_DELAY)
-            
-        except Exception as e:
-            logger.error(f"Error fetching data: {e}")
-            break
-    
-    # Return the complete data
-    return {
-        "results": complete_results,
-        "count": len(complete_results),
-        "total": total_results,
-        "search_term": search_term,
-        "api_type": api_type,
-        "date_collected": datetime.now().isoformat()
-    }
-
-def save_results(data, api_type, search_term, combined=False):
-    """
-    Save API results to a JSON file.
-    
-    Args:
-        data (dict): The data to save
-        api_type (str): The API type ('patent', 'software', or 'spinoff')
-        search_term (str): The search term that was queried
-        combined (bool): Whether this is a combined results file
-    """
-    if combined:
-        filename = f"{RESULTS_DIR}/nasa_{api_type}_combined.json"
-    else:
-        filename = f"{RESULTS_DIR}/nasa_{api_type}_{search_term.replace(' ', '_')}.json"
-    
-    try:
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        logger.info(f"Saved results to {filename} ({data['count']} items)")
-    except Exception as e:
-        logger.error(f"Error saving results to {filename}: {e}")
-
-def remove_duplicates(results_list):
-    """
-    Remove duplicate records from a list of results based on their IDs.
-    
-    Args:
-        results_list (list): List of result records
-        
-    Returns:
-        list: Deduplicated results
-    """
-    unique_ids = set()
-    unique_results = []
-    
-    for result in results_list:
-        # The ID is typically the first element in each result record
-        result_id = result[0] if result and len(result) > 0 else None
-        
-        if result_id and result_id not in unique_ids:
-            unique_ids.add(result_id)
-            unique_results.append(result)
-    
-    return unique_results
-
-def collect_data(api_types=None, search_terms=None, combine_results=True):
-    """
-    Collect data from the NASA Technology Transfer API.
-    
-    Args:
-        api_types (list): List of API types to query
-        search_terms (list): List of search terms to use
+        api_types (list): List of API types to query (patent, software, spinoff)
+        search_terms (list): List of search terms to use (if None, uses get_search_terms())
         combine_results (bool): Whether to combine results into a single file per API type
+        
+    Returns:
+        dict: Summary of results with counts for each API type
     """
     if api_types is None:
         api_types = API_TYPES
@@ -199,41 +78,60 @@ def collect_data(api_types=None, search_terms=None, combine_results=True):
     if search_terms is None:
         search_terms = get_search_terms()
     
-    logger.info(f"Starting data collection for {len(api_types)} API types and {len(search_terms)} search terms")
+    logger.info(f"Starting comprehensive data collection for {len(api_types)} API types using {len(search_terms)} search terms")
+    all_results = {api_type: [] for api_type in api_types}
     
-    # For each API type, collect and combine data
+    # For each API type, collect data using multiple search terms
     for api_type in api_types:
-        all_results = []
+        logger.info(f"Collecting {api_type} data using {len(search_terms)} search terms")
         
         # Collect data for each search term
         for search_term in search_terms:
-            data = fetch_api_data(api_type, search_term)
+            if api_type == "patent":
+                data = nasa_patent_api.search_patents(search_term, save_results=not combine_results)
+                all_results[api_type].extend(data.get("results", []))
             
-            # Save individual results if requested
-            if not combine_results:
-                save_results(data, api_type, search_term)
+            elif api_type == "software":
+                data = nasa_software_api.search_software(search_term, save_results=not combine_results)
+                all_results[api_type].extend(data.get("results", []))
             
-            # Add to combined results
-            all_results.extend(data.get("results", []))
+            elif api_type == "spinoff":
+                data = nasa_spinoff_api.search_spinoffs(search_term, save_results=not combine_results)
+                all_results[api_type].extend(data.get("results", []))
+                
+            # Log progress for this search term
+            logger.info(f"  - Search term '{search_term}' found {len(data.get('results', []))} {api_type} results")
+    
+    # If combining results, save the combined files
+    if combine_results:
+        results_summary = {}
         
-        # If combining results, save the combined file
-        if combine_results and all_results:
-            # Remove duplicates
-            unique_results = remove_duplicates(all_results)
-            
-            # Create combined data structure
-            combined_data = {
-                "results": unique_results,
-                "count": len(unique_results),
-                "total": len(unique_results),
-                "api_type": api_type,
-                "date_collected": datetime.now().isoformat(),
-                "search_terms": search_terms
-            }
-            
-            # Save combined results
-            save_results(combined_data, api_type, "combined", combined=True)
-            logger.info(f"Combined {api_type} results: {len(all_results)} total, {len(unique_results)} unique")
+        for api_type, results in all_results.items():
+            if results:
+                # Remove duplicates
+                unique_results = utils.remove_duplicates(results)
+                results_summary[api_type] = len(unique_results)
+                
+                # Create combined data structure
+                combined_data = {
+                    "results": unique_results,
+                    "count": len(unique_results),
+                    "total": len(unique_results),
+                    "api_type": api_type,
+                    "date_collected": utils.generate_timestamp(),
+                    "search_terms": search_terms
+                }
+                
+                # Save combined results
+                filename = f"nasa_{api_type}_combined.json"
+                utils.save_results(combined_data, filename)
+                logger.info(f"Combined {api_type} results: {len(results)} total, {len(unique_results)} unique")
+    else:
+        # If not combining results, just return the counts
+        results_summary = {api_type: len(results) for api_type, results in all_results.items()}
+    
+    # Return summary of collected data
+    return results_summary
 
 def main():
     """
@@ -241,21 +139,43 @@ def main():
     """
     parser = argparse.ArgumentParser(description='Collect data from NASA Technology Transfer API')
     parser.add_argument('--api-types', nargs='+', choices=API_TYPES, 
-                        help='Specific API types to query')
+                        help='Specific API types to query (patent, software, spinoff)')
     parser.add_argument('--search-terms', nargs='+', 
-                        help='Specific search terms to use')
+                        help='Specific search terms to use (omit to use comprehensive list)')
     parser.add_argument('--no-combine', action='store_true', 
                         help='Do not combine results into a single file per API type')
+    parser.add_argument('--single-term', action='store_true', 
+                        help='Use only a single generic search term (less comprehensive)')
     args = parser.parse_args()
     
     start_time = time.time()
     logger.info("NASA Technology Transfer API Data Collection Started")
     
-    collect_data(
+    # Ensure results directory exists
+    utils.ensure_results_directory()
+    
+    # Determine search terms
+    search_terms = None
+    if args.single_term:
+        search_terms = ["a"]  # Use only the generic term
+        logger.info("Using single generic search term 'a' (less comprehensive)")
+    elif args.search_terms:
+        search_terms = args.search_terms
+        logger.info(f"Using {len(search_terms)} user-specified search terms")
+    else:
+        search_terms = get_search_terms()
+        logger.info(f"Using {len(search_terms)} comprehensive search terms")
+    
+    # Collect the data
+    results_summary = collect_all_data(
         api_types=args.api_types, 
-        search_terms=args.search_terms,
+        search_terms=search_terms,
         combine_results=not args.no_combine
     )
+    
+    # Log summary of results
+    for api_type, count in results_summary.items():
+        logger.info(f"Collected {count} {api_type} records")
     
     elapsed_time = time.time() - start_time
     logger.info(f"Data collection completed in {elapsed_time:.2f} seconds")
