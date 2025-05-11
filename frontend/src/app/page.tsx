@@ -7,7 +7,7 @@ import ResponsePanel from '@/components/chat/ResponsePanel';
 import DisplayPanel from '@/components/display/DisplayPanel';
 import RootLayout from '@/components/layout/RootLayout';
 import AgentApi from '@/services/api';
-import { Message, ToolCallData } from '@/types';
+import { Message, ToolCallData, ToolCallStage } from '@/types';
 
 export default function Home() {
   // State to track whether a request has been sent
@@ -29,6 +29,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   // State to track API health
   const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
+  // State to track if we're processing tool calls
+  const [processingTools, setProcessingTools] = useState(false);
 
   // This useEffect will only run on the client after hydration
   useEffect(() => {
@@ -47,6 +49,37 @@ export default function Home() {
     
     checkApiHealth();
   }, []);
+
+  // Update tool call statuses in a message
+  const updateToolCallsInMessage = (messageId: string, updatedToolCalls: ToolCallData[]) => {
+    setMessages(prevMessages => 
+      prevMessages.map(message => {
+        if (message.id === messageId && message.toolCalls) {
+          // Update the tool calls in this message
+          return {
+            ...message,
+            toolCalls: message.toolCalls.map(existingToolCall => {
+              // Find the updated tool call with the same ID
+              const updatedToolCall = updatedToolCalls.find(tc => tc.id === existingToolCall.id);
+              if (updatedToolCall) {
+                // If found, return the updated version
+                return {
+                  ...existingToolCall,
+                  ...updatedToolCall,
+                  stage: 'completed' as ToolCallStage,
+                  output: updatedToolCall.output
+                };
+              }
+              return existingToolCall;
+            }),
+            // All tool calls are no longer pending
+            toolCallsPending: updatedToolCalls.some(tc => tc.status === 'pending')
+          };
+        }
+        return message;
+      })
+    );
+  };
 
   // Handler for when a request is submitted
   const handleRequestSubmit = async (request: string) => {
@@ -74,70 +107,79 @@ export default function Home() {
       // Store the session ID for future requests
       setSessionId(response.session_id);
       
-      // For demo purposes, generate mock tool call data
-      // In a real implementation, this would come from the backend
-      const mockToolCalls: ToolCallData[] = [
-        {
-          id: `tool-call-${Date.now()}`,
-          toolName: 'SearchPatents',
-          inputs: {
-            query: 'autonomous navigation',
-            center: 'JPL',
-            max_results: 5
-          },
-          output: JSON.stringify({
-            status: 'success',
-            query: 'autonomous navigation',
-            total_found: 42,
-            returning: 5,
-            results: [
-              {
-                id: 'PAT123456',
-                case_number: 'NASA-PAT-001',
-                title: 'Autonomous Navigation System for Space Exploration',
-                description: 'A system for autonomous navigation of spacecraft in deep space exploration missions.',
-                primary_contact: 'John Doe',
-                category: 'Navigation',
-                website: 'https://technology.nasa.gov/patent/PAT123456',
-                status: 'Granted',
-                date: '2023-05-15',
-                center: 'JPL'
-              },
-              {
-                id: 'PAT789012',
-                case_number: 'NASA-PAT-002',
-                title: 'Terrain-based Navigation for Planetary Rovers',
-                description: 'A method for rover navigation using terrain feature recognition and mapping.',
-                primary_contact: 'Jane Smith',
-                category: 'Navigation',
-                website: 'https://technology.nasa.gov/patent/PAT789012',
-                status: 'Granted',
-                date: '2022-11-30',
-                center: 'JPL'
-              }
-            ]
-          }),
-          timestamp: Date.now()
-        }
-      ];
+      // Get the tool calls from the response (initially in pending state)
+      const toolCalls = response.toolCalls || [];
       
-      // Create an agent message
+      // Create a timestamp for the agent message ID to ensure consistency
+      const agentMessageId = `agent-${Date.now()}`;
+      
+      // Determine if there are any pending tool calls
+      const hasPendingToolCalls = toolCalls.length > 0;
+      
+      // If there are tool calls, set the processing state to true
+      if (hasPendingToolCalls) {
+        setProcessingTools(true);
+      }
+      
+      // Add stage information to tool calls
+      const enhancedToolCalls = toolCalls.map(toolCall => ({
+        ...toolCall,
+        stage: hasPendingToolCalls ? 'pending' as ToolCallStage : 'completed' as ToolCallStage,
+        isExpanded: false // Default to collapsed
+      }));
+
+      // Create the agent message with the response text and tool calls
       const agentMessage: Message = {
-        id: `agent-${Date.now()}`,
+        id: agentMessageId,
         content: response.response,
         sender: 'agent',
         timestamp: Date.now(),
-        toolCalls: mockToolCalls // Add the mock tool calls for demonstration
+        toolCalls: enhancedToolCalls.length > 0 ? enhancedToolCalls : undefined,
+        toolCallsPending: hasPendingToolCalls
       };
       
       // Add the agent message to the messages array
       setMessages(prevMessages => [...prevMessages, agentMessage]);
       
+      // Start polling for tool call results if there are pending tool calls
+      if (hasPendingToolCalls && sessionId) {
+        const toolCallIds = toolCalls.map(tc => tc.id);
+        
+        // Poll for results and update the UI
+        AgentApi.pollToolCallResults(
+          response.session_id,
+          toolCallIds,
+          (updatedToolCalls) => {
+            // Update the tool calls in the message with the latest results
+            updateToolCallsInMessage(agentMessageId, updatedToolCalls);
+            
+            // Check if all tool calls are completed
+            const allCompleted = updatedToolCalls.every(
+              tc => tc.status === 'completed' || tc.status === 'error' || tc.status === 'not_found'
+            );
+            
+            // If all tool calls are completed, set the processing state to false
+            if (allCompleted) {
+              setProcessingTools(false);
+            }
+          }
+        ).then(() => {
+          // All tool calls are completed or timeout reached
+          setProcessingTools(false);
+        }).catch(error => {
+          console.error('Error polling for tool call results:', error);
+          setProcessingTools(false);
+        });
+      }
     } catch (error: any) {
       console.error('Error calling agent API:', error);
       setError(`Error: ${error.message || 'Failed to get response from the agent'}`);
+      setProcessingTools(false);
     } finally {
       setIsLoading(false);
+      
+      // Note: We don't set processingTools to false here because it might still be processing
+      // The polling function will set it to false when all tools are completed
     }
   };
 
@@ -159,6 +201,7 @@ export default function Home() {
     setDisplayItems([]);
     setSessionId(null);
     setError(null);
+    setProcessingTools(false);
   };
 
   // If we're not mounted yet, render nothing to prevent hydration mismatch
@@ -209,6 +252,7 @@ export default function Home() {
             onNewRequest={handleRequestSubmit} 
             onReset={handleReset} 
             isLoading={isLoading}
+            processingTools={processingTools}
             error={error}
           />
           

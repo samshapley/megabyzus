@@ -11,6 +11,7 @@ interface ResponsePanelProps {
   onNewRequest: (request: string) => void;
   onReset: () => void;
   isLoading?: boolean;
+  processingTools?: boolean;  // New prop for tool processing state
   error?: string | null;
 }
 
@@ -20,6 +21,7 @@ export default function ResponsePanel({
   onNewRequest, 
   onReset,
   isLoading = false,
+  processingTools = false,  // Default to false
   error = null
 }: ResponsePanelProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -27,7 +29,7 @@ export default function ResponsePanel({
   // Auto-scroll to bottom when messages are added or loading state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading, error]);
+  }, [messages, isLoading, processingTools, error]);
 
   return (
 <div className="flex flex-col h-full border-r border-white/10 max-h-screen">
@@ -38,6 +40,11 @@ export default function ResponsePanel({
           {isLoading && (
             <span className="text-xs px-2 py-1 bg-white/10 rounded-full">
               Processing...
+            </span>
+          )}
+          {processingTools && (
+            <span className="text-xs px-2 py-1 bg-amber-800/50 text-amber-200 rounded-full ml-2">
+              Using tools...
             </span>
           )}
         </div>
@@ -69,6 +76,14 @@ export default function ResponsePanel({
                 } ${message.sender === 'agent' ? 'whitespace-pre-wrap' : ''}`}
               >
                 {message.content}
+                
+                {/* Show "Using tools..." indicator for messages with toolCallsPending */}
+                {message.sender === 'agent' && message.toolCallsPending && (
+                  <div className="mt-2 text-sm text-amber-300 flex items-center">
+                    <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse mr-2"></div>
+                    <span>Using tools to find information...</span>
+                  </div>
+                )}
               </div>
               
               {/* Tool Call Expansion Panels */}
@@ -78,6 +93,7 @@ export default function ResponsePanel({
                     <ToolCallExpansionPanel
                       key={toolCall.id}
                       toolCall={toolCall}
+                      isPending={toolCall.stage === 'pending'}
                     />
                   ))}
                 </div>
@@ -117,6 +133,19 @@ export default function ResponsePanel({
           </div>
         )}
         
+        {/* Tool Processing indicator shown when processing tools */}
+        {!isLoading && processingTools && (
+          <div className="animate-fade-in">
+            <div className="font-semibold text-sm text-secondary-text mb-1">Megabyzus</div>
+            <div className="py-3 px-4 bg-secondary-background rounded-lg flex items-center space-x-2 rounded-tl-none">
+              <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse delay-150"></div>
+              <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse delay-300"></div>
+              <span className="ml-2 text-sm text-amber-300">Using tools to search...</span>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
       
@@ -125,7 +154,7 @@ export default function ResponsePanel({
         <ChatInput
           onSubmit={onNewRequest}
           placeholder="Send a message..."
-          disabled={isLoading}
+          disabled={isLoading || processingTools}
         />
       </div>
     </div>
