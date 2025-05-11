@@ -6,8 +6,8 @@ Unit tests for NASA Patent API module.
 import unittest
 from unittest import mock
 import json
-from agent.data.nasa import nasa_patent_api as patent_api
-from agent.data.nasa import nasa_api_utils as utils
+from megabyzus.data.nasa import nasa_patent_api as patent_api
+from megabyzus.data.nasa import nasa_api_utils as utils
 
 class TestNasaPatentApi(unittest.TestCase):
     """Test cases for NASA Patent API module."""

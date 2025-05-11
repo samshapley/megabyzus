@@ -15,10 +15,10 @@ import logging
 from datetime import datetime
 
 # Import modular endpoint scripts
-import nasa_api_utils as utils
-import nasa_patent_api
-import nasa_software_api
-import nasa_spinoff_api
+import megabyzus.data.nasa.nasa_api_utils as utils
+import megabyzus.data.nasa.nasa_patent_api
+import megabyzus.data.nasa.nasa_software_api
+import megabyzus.data.nasa.nasa_spinoff_api
 
 # Set up logging
 logger = utils.setup_logging("nasa_api_collector.log")

@@ -7,7 +7,7 @@ import os
 import json
 import unittest
 from unittest import mock
-from agent.data.nasa import nasa_api_utils as utils
+from megabyzus.data.nasa import nasa_api_utils as utils
 
 class TestNasaApiUtils(unittest.TestCase):
     """Test cases for NASA API utilities."""
