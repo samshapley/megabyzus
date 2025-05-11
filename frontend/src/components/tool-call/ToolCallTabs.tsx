@@ -6,19 +6,26 @@ import { ToolCallTab } from '@/types';
 interface ToolCallTabsProps {
   inputs: Record<string, any>;
   output: any;
+  isPending?: boolean; // New prop to indicate pending state
 }
 
-export default function ToolCallTabs({ inputs, output }: ToolCallTabsProps) {
+export default function ToolCallTabs({ 
+  inputs, 
+  output,
+  isPending = false 
+}: ToolCallTabsProps) {
   const [activeTab, setActiveTab] = useState<ToolCallTab>('input');
 
   return (
-    <div className="bg-secondary-background rounded-b-lg overflow-hidden">
+    <div className={`${isPending ? 'bg-amber-900/10' : 'bg-secondary-background'} rounded-b-lg overflow-hidden`}>
       {/* Tab Navigation */}
-      <div className="flex border-b border-white/10">
+      <div className={`flex border-b ${isPending ? 'border-amber-500/30' : 'border-white/10'}`}>
         <button
           className={`py-2 px-4 text-sm font-medium transition-colors ${
             activeTab === 'input'
-              ? 'text-white border-b-2 border-[#B08D57]'
+              ? isPending 
+                ? 'text-amber-300 border-b-2 border-amber-500'
+                : 'text-white border-b-2 border-[#B08D57]'
               : 'text-secondary-text hover:text-white hover:bg-white/5'
           }`}
           onClick={() => setActiveTab('input')}
@@ -28,22 +35,33 @@ export default function ToolCallTabs({ inputs, output }: ToolCallTabsProps) {
         <button
           className={`py-2 px-4 text-sm font-medium transition-colors ${
             activeTab === 'output'
-              ? 'text-white border-b-2 border-[#B08D57]'
+              ? isPending 
+                ? 'text-amber-300 border-b-2 border-amber-500'
+                : 'text-white border-b-2 border-[#B08D57]'
               : 'text-secondary-text hover:text-white hover:bg-white/5'
           }`}
           onClick={() => setActiveTab('output')}
+          disabled={isPending} // Disable output tab when pending
         >
           Output
+          {isPending && ' (pending)'}
         </button>
       </div>
 
       {/* Tab Content */}
       <div className="transition-all duration-200">
         {activeTab === 'input' ? (
-          <InputParamsTable inputs={inputs} />
+          <InputParamsTable inputs={inputs} isPending={isPending} />
         ) : (
           <div className="p-3">
-            <ToolOutputDisplay output={output} />
+            {isPending ? (
+              <div className="flex items-center justify-center p-4 text-amber-300">
+                <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse mr-2"></div>
+                <span>Waiting for tool results...</span>
+              </div>
+            ) : (
+              <ToolOutputDisplay output={output} />
+            )}
           </div>
         )}
       </div>

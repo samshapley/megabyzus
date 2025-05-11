@@ -4,16 +4,22 @@ interface ToolCallHeaderProps {
   toolName: string;
   isExpanded: boolean;
   onToggle: () => void;
+  isPending?: boolean; // New prop to indicate pending state
 }
 
-export default function ToolCallHeader({ toolName, isExpanded, onToggle }: ToolCallHeaderProps) {
+export default function ToolCallHeader({ 
+  toolName, 
+  isExpanded, 
+  onToggle, 
+  isPending = false 
+}: ToolCallHeaderProps) {
   return (
     <div 
       onClick={onToggle}
       className={`
         py-2 px-3 flex items-center justify-between 
         cursor-pointer hover:bg-white/5 transition-colors
-        border-b border-white/10
+        border-b ${isPending ? 'border-amber-500/30' : 'border-white/10'}
         ${isExpanded ? 'bg-white/5' : 'bg-transparent'}
       `}
     >
@@ -29,13 +35,14 @@ export default function ToolCallHeader({ toolName, isExpanded, onToggle }: ToolC
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round"
-            className="text-[#B08D57]"
+            className={`${isPending ? 'text-amber-400' : 'text-[#B08D57]'}`}
           >
             <path d="m22 2-7 20-4-9-9-4 20-7Z" />
           </svg>
         </div>
-        <span className="text-sm font-medium text-[#B08D57]">
+        <span className={`text-sm font-medium ${isPending ? 'text-amber-400' : 'text-[#B08D57]'}`}>
           {toolName}
+          {isPending && ' (processing...)'}
         </span>
       </div>
       <div className="text-white/70">

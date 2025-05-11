@@ -1,8 +1,12 @@
 interface InputParamsTableProps {
   inputs: Record<string, any>;
+  isPending?: boolean; // Add pending state
 }
 
-export default function InputParamsTable({ inputs }: InputParamsTableProps) {
+export default function InputParamsTable({ 
+  inputs,
+  isPending = false
+}: InputParamsTableProps) {
   // Convert input parameters to an array of key-value pairs
   const paramEntries = Object.entries(inputs);
 
@@ -10,9 +14,9 @@ export default function InputParamsTable({ inputs }: InputParamsTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/10">
-            <th className="py-2 px-3 text-left font-medium text-secondary-text">Parameter</th>
-            <th className="py-2 px-3 text-left font-medium text-secondary-text">Value</th>
+          <tr className={`border-b ${isPending ? 'border-amber-500/30' : 'border-white/10'}`}>
+            <th className={`py-2 px-3 text-left font-medium ${isPending ? 'text-amber-300' : 'text-secondary-text'}`}>Parameter</th>
+            <th className={`py-2 px-3 text-left font-medium ${isPending ? 'text-amber-300' : 'text-secondary-text'}`}>Value</th>
           </tr>
         </thead>
         <tbody>
@@ -20,10 +24,14 @@ export default function InputParamsTable({ inputs }: InputParamsTableProps) {
             paramEntries.map(([key, value], index) => (
               <tr 
                 key={key} 
-                className={index < paramEntries.length - 1 ? "border-b border-white/5" : ""}
+                className={index < paramEntries.length - 1 
+                  ? isPending 
+                    ? "border-b border-amber-500/10" 
+                    : "border-b border-white/5" 
+                  : ""}
               >
-                <td className="py-2 px-3 font-mono">{key}</td>
-                <td className="py-2 px-3 font-mono">
+                <td className={`py-2 px-3 font-mono ${isPending ? 'text-amber-200' : ''}`}>{key}</td>
+                <td className={`py-2 px-3 font-mono ${isPending ? 'text-amber-200' : ''}`}>
                   {typeof value === 'object' 
                     ? JSON.stringify(value) 
                     : String(value)
@@ -33,7 +41,7 @@ export default function InputParamsTable({ inputs }: InputParamsTableProps) {
             ))
           ) : (
             <tr>
-              <td colSpan={2} className="py-3 px-3 text-center text-secondary-text">
+              <td colSpan={2} className={`py-3 px-3 text-center ${isPending ? 'text-amber-300' : 'text-secondary-text'}`}>
                 No parameters provided
               </td>
             </tr>
